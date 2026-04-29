@@ -354,11 +354,13 @@ function FriendCard({ friend, isMobile, onClick }) {
         en {friend.days} día{friend.days !== 1 ? 's' : ''}
       </div>
       {!isMobile && (
-        <button style={{
-          marginTop: 12, width: '100%', padding: 10, borderRadius: 10,
-          border: `1px solid ${C.border}`, background: 'white', color: C.ink,
-          fontSize: 13, fontWeight: 600, cursor: 'pointer',
-        }}>Regalar</button>
+        <button
+          onClick={(e) => { e.stopPropagation(); window.location.href = '/u/' + friend.username; }}
+          style={{
+            marginTop: 12, width: '100%', padding: 10, borderRadius: 10,
+            border: `1px solid ${C.border}`, background: 'white', color: C.ink,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          }}>Regalar</button>
       )}
     </div>
   );

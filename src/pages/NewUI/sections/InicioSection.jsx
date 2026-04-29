@@ -134,14 +134,14 @@ export default function InicioSection({ profile, isMobile, session, handleTabCha
       }}>
         {/* Hero card: próximo cumple amigo O Organizar cumple */}
         {hasUpcomingFriend ? (
-          <HeroCard friend={upcomingFriends[0]} isMobile={isMobile} />
+          <HeroCard friend={upcomingFriends[0]} isMobile={isMobile} handleTabChange={handleTabChange} />
         ) : (
           <OrganizarCard isMobile={isMobile} onClick={() => handleTabChange('wizard')} />
         )}
 
         {/* Mi cumple - SIEMPRE se muestra, mobile y desktop */}
         {daysToMyBday !== null && (
-          <MiCumpleMini days={daysToMyBday} isMobile={isMobile} onClick={() => handleTabChange('micumple')} />
+          <MiCumpleMini days={daysToMyBday} isMobile={isMobile} onClick={() => handleTabChange('miregalo')} />
         )}
       </div>
 
@@ -194,7 +194,7 @@ export default function InicioSection({ profile, isMobile, session, handleTabCha
   );
 }
 
-function HeroCard({ friend, isMobile }) {
+function HeroCard({ friend, isMobile, handleTabChange }) {
   const bg = `linear-gradient(135deg, ${C.primary} 0%, ${C.primaryDark} 100%)`;
   return (
     <div style={{
@@ -247,7 +247,7 @@ function HeroCard({ friend, isMobile }) {
           borderRadius: 12, border: '1px solid rgba(255,255,255,0.4)',
           background: 'transparent', color: 'white',
           fontWeight: 600, fontSize: isMobile ? 13 : 14, cursor: 'pointer',
-        }}>Ver detalle</button>
+        }} onClick={() => window.location.href = '/u/' + friend.username}>Ver regalo</button>
       </div>
     </div>
   );
@@ -291,7 +291,7 @@ function MiCumpleMini({ days, isMobile, onClick }) {
         background: 'white', color: '#EC4899',
         fontWeight: 700, fontSize: isMobile ? 12 : 13, cursor: 'pointer',
         position: 'relative', zIndex: 1,
-      }}>Ver mi campaña →</button>
+      }}>Ver mi regalo →</button>
     </div>
   );
 }

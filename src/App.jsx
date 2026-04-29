@@ -61,7 +61,7 @@ function Navbar({ page, navigate, session, profile, onLogout, onRoleSwitch, onVi
         padding: isMobile ? "0 16px" : "0 20px",
         display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
       }}>
-        <div onClick={() => navigate("home")} style={{ cursor: "pointer", flexShrink: 0 }}>
+        <div onClick={() => navigate("landing")} style={{ cursor: "pointer", flexShrink: 0 }}>
           <Logo size={isMobile ? 20 : 24} />
         </div>
 
@@ -756,6 +756,7 @@ export default function App() {
         if (session && hasCampaign === false) return <CelebrantDashboard profile={profile} session={session} defaultTab="campaign" onViewLanding={() => viewProfile(profile?.username)} onCampaignCreated={() => { setHasCampaign(true); loadStats(session.user.id); }} />;
         if (session && hasCampaign) return <ProfileScreen profile={profile} navigate={navigate} onLogout={handleLogout} stats={stats} onAvatarUpload={handleAvatarUpload} onCoverUpload={handleCoverUpload} onViewLanding={() => profile?.username ? viewProfile(profile.username) : navigate("dashboard")} />;
         return <HomePage onRegister={() => navigate("register")} onExplore={() => navigate("explore")} />;
+      case "landing": return <HomePage onRegister={() => navigate("register")} onExplore={() => navigate("explore")} />;
       case "explore": return <ExplorePage onViewProfile={viewProfile} />;
       case "notif": return <NotificationsPage session={session} />;
       case "wishlist": return <WishListPage onBack={() => navigate("perfil")} />;

@@ -23,12 +23,8 @@ export function daysUntilBirthday(birthdayStr) {
  * @returns {string} Fecha formateada como "3 de enero"
  */
 export function formatBirthday(birthdayStr) {
-  const months = [
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
-  ];
   const d = new Date(birthdayStr + "T12:00:00");
-  return `${d.getDate()} de ${months[d.getMonth()]}`;
+  return `${d.getDate()}/${d.getMonth() + 1}`;
 }
 
 /**

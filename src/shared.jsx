@@ -99,7 +99,7 @@ export function ProgressBar({ value = 0, max = 100, color }) {
         style={{
           width: `${pct}%`,
           height: "100%",
-          background: `linear-gradient(90deg, ${barColor}, ${barColor}BB)`,
+          background: `linear-gradient(90deg, #7C3AED, #F59E0B)`,
           borderRadius: 8,
           transition: "width 0.5s ease",
         }}

@@ -58,6 +58,7 @@ export default function ProfilePage({ username, campaignId, currentSession, curr
   const [mpLoading, setMpLoading] = useState(false);
   const [mpWaiting, setMpWaiting] = useState(false); // overlay desktop
   const [paymentResult, setPaymentResult] = useState(null); // comprobante inline
+  const [organizer, setOrganizer] = useState(null); // perfil del organizador de la campaña
   const pollRef = useRef(null);
 
   // Conexión MP del cumpleañero (para saber si puede recibir pagos)
@@ -128,6 +129,12 @@ export default function ProfilePage({ username, campaignId, currentSession, curr
         ]);
         if (itemsData) setItems(itemsData);
         if (contribData) setContributions(contribData);
+
+        // Cargar perfil del organizador
+        if (camp.created_by) {
+          const { data: orgData } = await supabase.from("profiles").select("id, name, avatar_url, username").eq("id", camp.created_by).maybeSingle();
+          setOrganizer(orgData || null);
+        }
       }
     } catch (e) {
       console.error("loadData error:", e);
@@ -298,7 +305,7 @@ export default function ProfilePage({ username, campaignId, currentSession, curr
               setEmotional({ message: "", foto: null, video: null });
               setTimeout(() => document.getElementById("contribute-section")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
             }}>
-              🎁 Aportar para el regalo
+              Aportar al regalo
             </Button>
           </div>
           {/* Share button */}
@@ -349,30 +356,65 @@ export default function ProfilePage({ username, campaignId, currentSession, curr
               </div>
             )}
 
-            <h3 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 12px", color: COLORS.text }}>{campaign.title}</h3>
+            <h3 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 16px", color: COLORS.text }}>{campaign.title}</h3>
 
-            <p style={{ fontSize: 16, color: COLORS.textLight, margin: "0 0 24px", lineHeight: 1.6 }}>
-              Queremos juntar <strong style={{ color: COLORS.primary, fontWeight: 700 }}>{formatMoney(campaign.goal_amount)}</strong>
-            </p>
-
-            <ProgressBar value={totalRaised} max={campaign.goal_amount || 1} />
-            {campaign.goal_amount > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: COLORS.textLight, marginTop: 6 }}>
-                <span style={{ color: COLORS.success, fontWeight: 700 }}>{Math.round((totalRaised / campaign.goal_amount) * 100)}% recaudado</span>
-                <span>Faltan {formatMoney(Math.max(0, campaign.goal_amount - totalRaised))}</span>
-              </div>
-            )}
-
-            <div style={{ display: "flex", gap: 20, margin: "16px 0 24px", flexWrap: "wrap", fontSize: 14 }}>
-              <div>
-                <div style={{ fontWeight: 700, color: COLORS.success, fontSize: 18 }}>{formatMoney(totalRaised)}</div>
-                <div style={{ color: COLORS.textLight, fontSize: 12 }}>recaudados</div>
-              </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 18 }}>{contributions.length}</div>
-                <div style={{ color: COLORS.textLight, fontSize: 12 }}>aportantes</div>
-              </div>
+            <div style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 16, padding: "16px 18px", marginBottom: 24 }}>
+              {campaign.goal_amount > 0 && (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, color: COLORS.textLight }}>Meta del regalo</span>
+                    <span style={{ fontSize: 22, fontWeight: 800, color: COLORS.primary }}>{formatMoney(campaign.goal_amount)}</span>
+                  </div>
+                  <ProgressBar value={totalRaised} max={campaign.goal_amount} />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 4 }}>
+                    <span style={{ color: COLORS.success, fontWeight: 700 }}>{Math.round((totalRaised / campaign.goal_amount) * 100)}% recaudado</span>
+                    <span style={{ color: COLORS.textLight }}>Faltan {formatMoney(Math.max(0, campaign.goal_amount - totalRaised))}</span>
+                  </div>
+                  <div style={{ borderTop: "1px dashed #E5E7EB", marginTop: 14, paddingTop: 14, display: "flex", gap: 28 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, color: COLORS.success, fontSize: 18 }}>{formatMoney(totalRaised)}</div>
+                      <div style={{ color: COLORS.textLight, fontSize: 12 }}>Recaudado</div>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 18 }}>{contributions.length}</div>
+                      <div style={{ color: COLORS.textLight, fontSize: 12 }}>Aportantes</div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
+
+            {/* ── ORGANIZADOR ── */}
+            {organizer ? (
+              <div
+                onClick={() => organizer.username && (window.location.href = "/u/" + organizer.username)}
+                style={{
+                  background: "#F5F3FF", borderRadius: 14, padding: "12px 16px",
+                  display: "flex", alignItems: "center", gap: 12, marginBottom: 20,
+                  cursor: organizer.username ? "pointer" : "default",
+                }}
+              >
+                {organizer.avatar_url
+                  ? <img src={organizer.avatar_url} alt={organizer.name} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} />
+                  : <Avatar initials={getInitials(organizer.name || "?")} size={40} />
+                }
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", letterSpacing: 0.6 }}>Organizado por</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{organizer.name}</div>
+                </div>
+              </div>
+            ) : campaign ? (
+              <button
+                onClick={() => window.location.href = "/organizar"}
+                style={{
+                  width: "100%", padding: "13px 16px", borderRadius: 14, border: "none",
+                  background: COLORS.primary, color: "#fff", fontWeight: 700, fontSize: 14,
+                  cursor: "pointer", fontFamily: "inherit", marginBottom: 20,
+                }}
+              >
+                ¿Querés organizarlo?
+              </button>
+            ) : null}
 
             {campaign.description && (
               <Card style={{ background: COLORS.card, padding: 20, marginBottom: 24 }}>

@@ -210,6 +210,8 @@
 
 ---
 
+| **2.3.0** | 30-abr-2026 | c7f661c | feat: split MP acreditación inmediata + marketplace_fee exacto | api/mp-create-preference.js: agrega payment_methods.excluded_payment_types [credit_card, ticket] → solo débito/saldo MP/transferencia (acreditación inmediata). marketplace_fee ya era correcto (monto exacto ARS). Metadata enriquecida. ProfilePage.jsx: resumen UI corregido — label Comisión Cumpleanitos, badge ⚡ acreditación inmediata. | ✅ TEST |
+
 ## 📝 Pendientes para próximo release
 
 - Hard delete de cuenta (Edge Function con service_role)

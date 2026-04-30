@@ -151,6 +151,19 @@ export default async function handler(req, res) {
     }
 
     // 7. Crear preferencia en MP con el access_token del cumpleañero (marketplace)
+    //
+    // ESTRATEGIA DE ACREDITACIÓN INMEDIATA:
+    //   - Débito y saldo MP acreditan al instante → los ponemos primero y excluimos crédito
+    //   - payment_methods.excluded_payment_types: ["credit_card"] garantiza que solo entren
+    //     medios que liberan fondos en el momento (débito, saldo MP, transferencia)
+    //   - Si en el futuro se quiere aceptar crédito, sacar la exclusión y gestionar
+    //     la demora de liberación en la UI del cumpleañero
+    //
+    // SPLIT:
+    //   - marketplace_fee = monto EXACTO en ARS a retener para Cumpleanitos
+    //   - MP primero descuenta su propia comisión del total, luego retiene marketplace_fee
+    //   - El neto final que llega al cumpleañero = grossAmount − comisión_MP − marketplace_fee
+
     const preference = {
       items: [
         {
@@ -164,9 +177,22 @@ export default async function handler(req, res) {
         },
       ],
       payer: {
-        name:  payerName,
+        name: payerName,
       },
-      marketplace_fee: feeAmount,
+
+      // ── Comisión de plataforma (split automático) ──────────────────────────
+      marketplace_fee: feeAmount,  // Monto exacto en ARS, calculado arriba como grossAmount × FEE_PCT%
+
+      // ── Métodos de pago: solo los que acreditan INMEDIATAMENTE ─────────────
+      payment_methods: {
+        excluded_payment_types: [
+          { id: 'credit_card' },   // Crédito retiene fondos entre 2-14 días → excluido
+          { id: 'ticket' },        // Efectivo (Rapipago/Pagofácil) → demora + sin garantía
+        ],
+        // Déjamos habilitados: debit_card, account_money (saldo MP), bank_transfer
+        // Todos acreditan de forma instantánea en la cuenta del cumpleañero
+      },
+
       external_reference: externalRef,
       back_urls: {
         success: `${APP_BASE_URL}/pago/exito?ref=${externalRef}`,
@@ -177,8 +203,11 @@ export default async function handler(req, res) {
       notification_url: `${APP_BASE_URL}/api/mp-webhook`,
       statement_descriptor: 'CUMPLEANITOS',
       metadata: {
-        order_id:    orderId,
-        campaign_id: campaignId,
+        order_id:          orderId,
+        campaign_id:       campaignId,
+        fee_pct:           FEE_PCT,
+        fee_amount_ars:    feeAmount,
+        acreditacion:      'inmediata',
       },
     };
 

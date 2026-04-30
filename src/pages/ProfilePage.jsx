@@ -589,29 +589,43 @@ export default function ProfilePage({ username, campaignId, currentSession, curr
                     birthdayDate={profile?.birthday || campaign?.birthday_date || null}
                   />
 
-                  {/* Resumen de fondos */}
+                  {/* Resumen de fondos
+                      LÓGICA CORRECTA del split MP:
+                      - El PAGADOR abona el monto bruto completo (lo que tipea)
+                      - MP internamente divide: marketplace_fee → Cumpleanitos / resto → cumpleañero
+                      - El cumpleañero recibe: bruto − comisión_MP_propia − marketplace_fee_cumpleanitos
+                      - Nota: la comisión de MP (~3-5%) también sale del bolsillo del cumpleañero,
+                        igual que en cualquier cobro MP normal. No la mostramos para no confundir.
+                  */}
                   {(() => {
                     const commissionEnabled = campaign?.commission_enabled !== false;
-                    const commissionPct = commissionEnabled ? (Number(campaign?.commission_percentage) || 10) : 0;
-                    const amount = parseFloat(form.amount) || 0;
-                    const commissionAmount = Math.round(amount * (commissionPct / 100));
-                    const receivesAmount = amount - commissionAmount;
-                    
+                    const commissionPct     = commissionEnabled ? (Number(campaign?.commission_percentage) || 10) : 0;
+                    const amount            = parseFloat(form.amount) || 0;
+                    // marketplace_fee: monto exacto que Cumpleanitos retiene (igual que en el backend)
+                    const platformFee       = Math.round(amount * (commissionPct / 100));
+                    // Estimado de lo que recibe el cumpleañero (sin contar comisión propia de MP ~3-5%)
+                    const receivesAmount    = amount - platformFee;
+
                     return (
                       <div style={{ background: "#F5F3FF", border: "1px solid #DDD6FE", borderRadius: 12, padding: 14, marginTop: 16 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 }}>
-                          <span style={{ color: "#6B7280" }}>Monto bruto</span>
+                          <span style={{ color: "#6B7280" }}>Tu aporte</span>
                           <span style={{ fontWeight: 600, color: "#111827" }}>{formatMoney(amount)}</span>
                         </div>
                         {commissionEnabled && commissionPct > 0 && (
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 }}>
-                            <span style={{ color: "#6B7280" }}>{`Comisión plataforma (${commissionPct}%)`}</span>
-                            <span style={{ fontWeight: 600, color: "#6B7280" }}>{"−" + formatMoney(commissionAmount)}</span>
+                            <span style={{ color: "#6B7280" }}>{`Comisión Cumpleañitos (${commissionPct}%)`}</span>
+                            <span style={{ fontWeight: 600, color: "#6B7280" }}>{"−" + formatMoney(platformFee)}</span>
                           </div>
                         )}
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, borderTop: "1px solid #DDD6FE", paddingTop: 6 }}>
                           <span style={{ fontWeight: 600 }}>Recibe el cumpleañero</span>
-                          <span style={{ fontWeight: 700, color: "#16a34a" }}>{formatMoney(receivesAmount)}</span>
+                          <span style={{ fontWeight: 700, color: "#16a34a" }}>
+                            {commissionPct > 0 ? `~${formatMoney(receivesAmount)}` : formatMoney(receivesAmount)}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6 }}>
+                          ⚡ Acreditación inmediata con débito o saldo MP
                         </div>
                       </div>
                     );

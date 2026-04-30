@@ -183,14 +183,16 @@ export default async function handler(req, res) {
       // ── Comisión de plataforma (split automático) ──────────────────────────
       marketplace_fee: feeAmount,  // Monto exacto en ARS, calculado arriba como grossAmount × FEE_PCT%
 
-      // ── Métodos de pago: solo los que acreditan INMEDIATAMENTE ─────────────
+      // ── Métodos de pago ────────────────────────────────────────────────────
+      // Aceptamos crédito, débito y saldo MP.
+      // Solo excluimos efectivo (ticket: Rapipago/Pagofácil) porque no garantiza
+      // acreditación ni monto exacto.
+      // Nota: débito y saldo MP acreditan inmediatamente; crédito puede tener
+      // retención de 2-14 días según el perfil del vendedor en MP.
       payment_methods: {
         excluded_payment_types: [
-          { id: 'credit_card' },   // Crédito retiene fondos entre 2-14 días → excluido
-          { id: 'ticket' },        // Efectivo (Rapipago/Pagofácil) → demora + sin garantía
+          { id: 'ticket' },  // Efectivo → excluido (demora + sin garantía de acreditación)
         ],
-        // Déjamos habilitados: debit_card, account_money (saldo MP), bank_transfer
-        // Todos acreditan de forma instantánea en la cuenta del cumpleañero
       },
 
       external_reference: externalRef,
